@@ -9,11 +9,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 
-def scrape_data(content: webdriver, method: str) -> None:
-
-
-
-
 chrome_options = Options()
 # chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
@@ -24,31 +19,25 @@ recipes = []
 tags = []
 ingredients = []
 preparation = []
-food_imgs = []
 
 el_to_hover = driver.find_element(By.XPATH, "//div[@class='main-menu']//a[text()[contains(.,'Posiłki')]]")  
 
 hover = ActionChains(driver)
 hover.move_to_element(el_to_hover).click().perform()
 
-content = driver.page_source
-
 next_found = True
+elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
 
 while next_found:
-    for element in driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']"):
+    for i in range(0, len(elements)):
 
+        elements[i].click()
+        content = driver.page_source
         soup = BeautifulSoup(content, 'html.parser')
-        name = element.find('div', attrs={'itemprop': 'name'})
+        name = soup.find('div', attrs={'itemprop': 'name'})
 
-        img = element.find('img', attrs={'class': 'img-responsive'})
-        recipes.append(name.text.strip())
-        food_imgs.append(img['src'])
-
-        link = driver.find_element(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']").click()
-        hf_cont = driver.page_source
-        
-        rec_ing = soup.find('div', class_='group-skladniki')
+        driver.implicitly_wait(2.5)
+        rec_ing = soup.find('div', class_='group-skladniki field-group-div')
         rec_ing = rec_ing.get_text()
         ingredients.append(rec_ing)
         prep = soup('div', class_='group-przepis field-group-div')
@@ -59,7 +48,10 @@ while next_found:
         tags.append(tag)
         driver.back()
         print(tags)
+        driver.implicitly_wait(3)
+        
+        elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
 
 
-df = pd.DataFrame({'tags': tags, 'recipes': recipes, 'ingredients': ingredients, 'preparation': preparation, 'food_imgs': food_imgs})
+df = pd.DataFrame({'tags': tags, 'recipes': recipes, 'ingredients': ingredients, 'preparation': preparation})
 df.to_csv('przepisy.csv', index=False, encoding='utf-8')
