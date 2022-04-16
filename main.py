@@ -2,6 +2,7 @@ from argparse import Action
 from json.tool import main
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
@@ -46,11 +47,18 @@ while next_found:
         tag = soup.find('ul', class_='field field-name-field-przepisy field-type-taxonomy-term-reference field-label-hidden')
         tag = tag.get_text()
         tags.append(tag)
+
         driver.back()
-        print(tags)
         driver.implicitly_wait(3)
         
         elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
+    try:
+        driver.find_element(By.XPATH, '//li[@class="next last"]').click()
+        driver.implicitly_wait(1.5)
+        elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
+    except NoSuchElementException:
+        print('End of list')
+        next_found = False
 
 
 df = pd.DataFrame({'tags': tags, 'recipes': recipes, 'ingredients': ingredients, 'preparation': preparation})
