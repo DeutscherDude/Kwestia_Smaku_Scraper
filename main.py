@@ -1,6 +1,8 @@
 from argparse import Action
 from json.tool import main
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -31,13 +33,15 @@ elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-pl
 
 while next_found:
     for i in range(0, len(elements)):
-
-        elements[i].click()
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(elements[i])).click()
+        # elements[i].click()
         content = driver.page_source
         soup = BeautifulSoup(content, 'html.parser')
         name = soup.find('div', attrs={'itemprop': 'name'})
 
-        driver.implicitly_wait(2.5)
+        # To fix explicit waiting for an element to be located
+        
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "group-skladniki field-group-div")))
         rec_ing = soup.find('div', class_='group-skladniki field-group-div')
         rec_ing = rec_ing.get_text()
         ingredients.append(rec_ing)
