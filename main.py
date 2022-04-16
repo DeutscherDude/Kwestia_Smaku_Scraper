@@ -1,8 +1,8 @@
+from argparse import Action
+from json.tool import main
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
@@ -10,8 +10,9 @@ import pandas as pd
 
 
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+driver.maximize_window()
 driver.get('https://www.kwestiasmaku.com/')
 content = driver.page_source
 
@@ -21,9 +22,22 @@ ingredients = []
 preparation = []
 food_imgs = []
 
+
+el_to_hover = driver.find_element(By.XPATH, "//div[@class='main-menu']//a[text()[contains(.,'Posiłki')]]")
+
+# el_to_hover = driver.find_element(By.XPATH, "//div[@class='main-menu']//span[@class='icon icomoon icon-poradnia']")
+hover = ActionChains(driver)
+hover.move_to_element(el_to_hover).perform()
+
+main_category = soup.find('a', text='Posiłki', href=True)
+# //div[@class="main-menu"]//ul[@class="depth_-1 menu"]//li[@class="has-children"]
+
+
+# soup.find_all(href=re.compile("elsie"), id='link1')
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>]
+
 for element in soup.find_all('div', class_='col col-lg-3'):
     name = element.find('div', attrs={'class': 'views-field-title'})
-    print(name)
 
     img = element.find('img', attrs={'class': 'img-responsive'})
     recipes.append(name.text.strip())
