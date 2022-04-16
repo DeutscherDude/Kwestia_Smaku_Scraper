@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 geckodriver.log
-google-chrome-stable_current.amd64.deb
+*.deb
 
 # C extensions
 *.so
