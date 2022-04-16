@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 geckodriver.log
-*.deb
+google*
 
 # C extensions
 *.so
