@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from psql_connection import get_session
+from sqlalchemy import insert
 import pandas as pd
 
 
@@ -28,8 +29,6 @@ k = 1
 
 session = get_session()
 
-print(session)
-
 while next_found:
     for i in range(0, len(elements)):
         try:
@@ -48,17 +47,18 @@ while next_found:
         soup = BeautifulSoup(content, 'html.parser')
         name = soup.find('div', attrs={'itemprop': 'name'})
 
-        driver.implicitly_wait(1)
+        driver.implicitly_wait(2)
         rec_ing = soup.find('div', class_='group-skladniki field-group-div')
-        driver.implicitly_wait(1)
         rec_ing = rec_ing.get_text()
-        ingredients.append(rec_ing)
-        prep = soup('div', class_='group-przepis field-group-div')
-        preparation.append(prep)
+        
+        prep = soup.find('div', class_='group-przepis field-group-div')
+        prep = prep.get_text()
         
         tag = soup.find('ul', class_='field field-name-field-przepisy field-type-taxonomy-term-reference field-label-hidden')
         tag = tag.get_text()
-        tags.append(tag)
+
+        # Add name, rec_ing, prep and tag as a new row to the database
+
 
         driver.implicitly_wait(1)
         driver.back()
@@ -73,7 +73,6 @@ while next_found:
         driver.implicitly_wait(1.5)
         elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
     except NoSuchElementException:
-        print('End of list')
         next_found = False
 
 

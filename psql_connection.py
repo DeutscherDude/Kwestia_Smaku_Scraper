@@ -1,5 +1,5 @@
 from requests import session
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from psql_settings import postgresql
 
@@ -25,5 +25,5 @@ def get_engine_from_settings():
 def get_session() -> sessionmaker:
     """Creates a session to use the database"""
     engine = get_engine_from_settings()
-    session = sessionmaker(bind=engine)
+    session = sessionmaker(bind=engine, expire_on_commit=False)
     return session
