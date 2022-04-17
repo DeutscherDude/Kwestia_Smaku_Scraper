@@ -5,6 +5,7 @@ __pycache__/
 
 geckodriver.log
 google*
+psql_settings.py
 
 # C extensions
 *.so

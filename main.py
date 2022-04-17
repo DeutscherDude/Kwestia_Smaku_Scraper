@@ -6,6 +6,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
+from psql_connection import get_session
 import pandas as pd
 
 
@@ -24,6 +25,10 @@ next_found = True
 elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
 
 k = 1
+
+session = get_session()
+
+print(session)
 
 while next_found:
     for i in range(0, len(elements)):
@@ -61,7 +66,7 @@ while next_found:
         elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
         
         k = k + 1
-        print(f"Beep {i}")
+        print(f"Beep {k}")
 
     try:
         driver.find_element(By.XPATH, '//li[@class="next last"]').click()
