@@ -1,5 +1,5 @@
 from requests import session
-from sqlalchemy import create_engine
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import sessionmaker
 from psql_settings import postgresql
 
@@ -27,3 +27,7 @@ def get_session() -> sessionmaker:
     engine = get_engine_from_settings()
     session = sessionmaker(bind=engine, expire_on_commit=False)
     return session
+
+def get_meta_data(db) -> str:
+    recipes = MetaData(bind=db)
+    return recipes
