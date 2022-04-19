@@ -1,3 +1,4 @@
+from requests import Session
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -6,9 +7,9 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
+from models import Recipe
 from psql_connection import get_engine_from_settings, get_meta_data, get_session
-from sqlalchemy import insert
-import pandas as pd
+from models import Recipe, recreate_database
 
 
 def scrap_recipy_name(driver: webdriver, content: str, x_path: str) -> str:
@@ -59,23 +60,19 @@ driver.maximize_window()
 driver.get('https://www.kwestiasmaku.com/przepisy/posilki')
 
 recipes = []
-tags = []
+tags = []   
 ingredients = []
 preparation = []
 
 next_found = True
 elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
 
-k = 1
+k = 0
 
 db = get_engine_from_settings()
-meta_data = get_meta_data(db)
-recipes_table = meta_data.tables
-
-print(recipes_table)
-
-# session = get_session()
-
+Session = get_session()
+session = Session()
+recreate_database(db)
 
 while next_found:
     for i in range(0, len(elements)):
@@ -97,19 +94,23 @@ while next_found:
         prep = scrap_recipy_preparation(driver, content, "//div[@class='group-przepis field-group-div']")
         tag = scrap_recipy_tags(driver, content, "//div[@class='group-kategorie field-group-div']")
 
-        recipes.append(rec_name)
-        ingredients.append(rec_ing)
-        preparation.append(prep)
-        tags.append(tag)
-        # Add name, rec_ing, prep and tag as a new row to the database
+        recipy = Recipe(
+            name=rec_name,
+            ingredients=rec_ing,
+            preparation=prep,
+            tags=tag
+        )
+
+        session.add(recipy)
+        session.commit()
 
         driver.implicitly_wait(1)
         driver.back()
         
         elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
         
-        k = k + 1
         print(f"Beep {k}")
+        k = k + 1
 
     try:
         driver.find_element(By.XPATH, '//li[@class="next last"]').click()
@@ -117,7 +118,3 @@ while next_found:
         elements = driver.find_elements(By.XPATH, "//div[@class='views-bootstrap-grid-plugin-style']//div[@class='col col-lg-3']//img[@class='img-responsive']")
     except (NoSuchElementException, TimeoutException):
         next_found = False
-
-
-df = pd.DataFrame({'tags': tags, 'recipes': recipes, 'ingredients': ingredients, 'preparation': preparation})
-df.to_csv('przepisy.csv', index=False, encoding='utf-8')

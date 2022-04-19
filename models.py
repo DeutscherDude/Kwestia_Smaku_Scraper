@@ -13,3 +13,7 @@ class Recipe(Base):
 
     def __repr__(self):
         return "<Recipe(name='%s', ingredients='%s', preparation='%s', tags='%s')>" % (self.name, self.ingredients, self.preparation, self.tags)
+
+def recreate_database(engine):
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
